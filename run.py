@@ -44,11 +44,5 @@ def get_data_browsers(url): # function definition
             data.update({Date:i})
     da=json.dumps(data, indent=4, sort_keys=True)
     return da
-
-
-app=Flask(__name__)
-@app.route('/qrcode', methods=['GET'])
-def data():
-    return get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
-
-app.run(host='0.0.0.0',port=80)
+nms=get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
+print(nms)
