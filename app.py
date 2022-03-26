@@ -47,6 +47,9 @@ def get_data_browsers(url): # function definition
 
 
 app=Flask(__name__)
+@app.route('/')
+def index():
+    return "Hello World"
 @app.route('/qrcode', methods=['GET'])
 def data():
     return get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
