@@ -3,7 +3,7 @@ from pprint import pprint
 from html_table_parser.parser import HTMLTableParser
 import pandas as pd
 import json
-from flask import Flask
+from flask import Flask,render_template
 
 def url_get_contents(url):
     req = urllib.request.Request(url=url)
@@ -49,7 +49,8 @@ def get_data_browsers(url): # function definition
 app=Flask(__name__)
 @app.route('/')
 def index():
-    return "Hello World"
+    return render_template("index.html")
+        
 @app.route('/qrcode', methods=['GET'])
 def data():
     return get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
