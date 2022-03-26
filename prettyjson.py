@@ -38,30 +38,28 @@ def get_data_browsers(url): # function definition
         group=group.to_json(orient='index')
         group=json.loads(group)
         for i in range(0,len(c)):
-            data.update({Date:{str(c[i]):list(group.values())}})
-
-    return json.dumps(data,indent=10)
-'''
             #d.update({str(c[i]):list(group.values())})
         #for i in d.items():
-             #i
+            data.update({Date:{str(c[i]):list(group.values())}}) #i
     #main=json.loads(data)
-    #dags=json.dumps(data)
+    #dags=json.dumps(data)s
     #return json.dumps(data, sort_keys=True, indent=4) #, default=json_util.default
     #anm=jsonify(**data)
     #res=list(zip(data.items()))
     #res=jsonify(data)  #, sort_keys=True
-    #nms=json.loads(res)'''
-    
+    #nms=json.loads(res)
+    return json.dumps(data,indent=6)
 
-
-app=Flask(__name__)
+aaa=get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
+print(aaa)
+'''app=Flask(__name__)
 @app.route('/')
 def index():
     return "Hello World"
 @app.route('/qrcode', methods=['GET'])
 def data():
-    return get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
+    return
 
 if __name__ == '__main__':
     app.run()
+'''
