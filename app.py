@@ -3,7 +3,8 @@ from pprint import pprint
 from html_table_parser.parser import HTMLTableParser
 import pandas as pd
 import json
-from flask import Flask,jsonify
+from flask import Flask,jsonify,render_template
+import pymysql as p
 
 
 def url_get_contents(url):
@@ -62,14 +63,29 @@ def get_data_browsers(url): # function definition
     #res=list(zip(data.items()))
     #res=jsonify(data)  #, sort_keys=True
     #nms=json.loads(res)'''
-    
 
+con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
+cur=con.cursor()
+
+sql="insert into QRCODE(DATE,TIME,IP,BROWSER,OS)values(%s,%s,%s,%s, %s)"
 
 
 app=Flask(__name__)
 @app.route('/')
 def index():
-    return "Hello World"
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        data={'ip': str(request.environ['REMOTE_ADDR']),'timestamp':datetime.now(),'browser':str(request.user_agent._browser), 'os':str(request.user_agent._platform)}
+        tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
+        cur.executemany(sql,[(tm[:10],tm[11:],data['ip'],data['browser'],data['os'])])
+        con.commit()
+        
+    else:
+        data={'ip': str(request.environ['HTTP_X_FORWARDED_FOR']),'timestamp':datetime.now(),'browser':str(request.user_agent._browser), 'os':str(request.user_agent._platform)}
+        tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
+        cur.executemany(sql,[(tm[:10],tm[11:],data['ip'],data['browser'],data['os'])])
+        con.commit()
+        
+    return render_template('index.html')
 @app.route('/qrcode', methods=['GET'])
 def data():
     return get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
