@@ -4,6 +4,8 @@ from html_table_parser.parser import HTMLTableParser
 import pandas as pd
 import json
 from flask import Flask,jsonify
+
+
 def url_get_contents(url):
     req = urllib.request.Request(url=url)
     f = urllib.request.urlopen(req)
@@ -31,19 +33,27 @@ def get_data_browsers(url): # function definition
 
     df=pd.DataFrame(p.tables[3][1:],columns=p.tables[3][0])
     df1=df.groupby('Date')
-    #d={}
+    d={}
     data={}
     for Date,group in df1:            
         group=group.drop(columns=['Date'])
         group=group.to_json(orient='index')
         group=json.loads(group)
         for i in range(0,len(c)):
-            data.update({Date:{str(c[i]):list(group.values())}})
+            d.update({str(c[i]):list(group.values())})
+        for i in d.items():
+            data.update({Date:i})#[str(c[i]):list(group.values())]
+    asdf=json.dumps(data,indent=4)
+    return asdf
+    
 
-    return json.dumps(data,indent=10)
-'''
-            #d.update({str(c[i]):list(group.values())})
-        #for i in d.items():
+
+
+'''get_data_browsers('http://qrcode.samisme.cf:8080/services/example')
+
+
+            
+        #
              #i
     #main=json.loads(data)
     #dags=json.dumps(data)
@@ -53,6 +63,7 @@ def get_data_browsers(url): # function definition
     #res=jsonify(data)  #, sort_keys=True
     #nms=json.loads(res)'''
     
+
 
 
 app=Flask(__name__)
