@@ -47,7 +47,68 @@ def get_data_browsers(url): # function definition
             data.update({Date:i})#[str(c[i]):list(group.values())]
     asdf=json.dumps(data,indent=4)
     return asdf
+
+
+def db(database_name='QRCODE_DATA'):
+    return p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database=database_name)
+
+def query_db(query, args=(), one=False):
+    cur = db().cursor()
+    cur.execute(query, args)
+    r = [dict((cur.description[i][0], value) \
+               for i, value in enumerate(row)) for row in cur.fetchall()]
+    cur.connection.close()
+    return (r[0] if r else None) if one else r
+def dbcheck():
     
+    my_query = query_db("select * from QRCODE")
+
+    json_output = json.dumps(my_query,indent=4)
+
+    #list(filter(lambda x: x['type'] == 1, json_output))
+    df=pd.DataFrame(my_query)
+    #print(df)
+    date=list(df.groupby(['DATE']).groups.keys())
+    vis=df['DATE'].value_counts().to_dict()
+    #print(vis)
+    #vis=list(vis.values())
+    unis=df.groupby(['DATE','IP']).size().reset_index(name='COUNT')
+    uni=unis['DATE'].value_counts().to_dict()
+    #print(uni)
+    #uni=list(uni.values())
+    bro=df.value_counts(['DATE','BROWSER'])
+    data = bro.to_dict()
+    bro_data =  [(i[0],{i[1]:data[i]}) for i in data]
+    #print(bro_data)
+    d={}
+    for i in bro_data:
+        if i[0] not in d:
+            d[i[0]]=[i[1]]
+        else:
+            d[i[0]].append(i[1])
+
+    #bro = list(d.values())
+    #print(d)
+    #print(bro)
+    os=df.value_counts(['DATE','OS'])
+    data = os.to_dict()
+    os_data =  [(i[0],{i[1]:data[i]}) for i in data]
+    e={}
+    for i in os_data:
+        if i[0] not in e:
+            e[i[0]]=[i[1]]
+        else:
+            e[i[0]].append(i[1])
+
+    #os = list(e.values())
+    #print(os)
+    #print(e)
+    fdf={}
+    for i in list(vis.keys()):
+        fdf.update({i:[{'VISITS':vis.get(i)},{'UNIQUES':uni.get(i)},{'BROWSERS':d.get(i)},{'OS':e.get(i)}]})    
+
+    return json.dumps(fdf,indent=4)
+   
 
 
 
@@ -71,7 +132,14 @@ cur=con.cursor()
 sql="insert into QRCODE(DATE,TIME,IP,BROWSER,OS)values(%s,%s,%s,%s, %s)"
 
 
+
 app=Flask(__name__)
+@app.route('/api/v1/daywise')
+def daywise():
+    return dbcheck()
+
+
+
 @app.route('/')
 def index():
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
