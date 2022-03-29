@@ -3,8 +3,9 @@ from pprint import pprint
 from html_table_parser.parser import HTMLTableParser
 import pandas as pd
 import json
-from flask import Flask,jsonify,render_template
+from flask import Flask,jsonify,render_template,request
 import pymysql as p
+from datetime import datetime
 
 
 def url_get_contents(url):
