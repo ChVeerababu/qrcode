@@ -25,8 +25,10 @@ def index():
         cur.executemany(sql,[(tm[:10],tm[11:13],data['ip'],data['browser'],data['os'])])
         con.commit()
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
+        cur.executemany("select * from Hour_Wise_Data where DATE=%s and HOUR=%s order by DATE and HOUR desc",[(str(tm[:10]),str(tm[11:13]))])
+        result=cur.fetchall()
 
-        if len(rest)==0:
+        if len(rest)==0 and len(result)==0:
             print("len(a)==0:",rest)
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
@@ -38,7 +40,7 @@ def index():
             
 
         else:
-            print(rest)
+
             rest[0][2]+=1
             if a[2] not in rest[0][-1]:
                 rest[0][3]+=1
