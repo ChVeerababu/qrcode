@@ -5,13 +5,6 @@ from datetime import datetime
 import time
 
 
-con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
-cur=con.cursor()
-sql="insert into Raw_Data(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
-sqls="insert into Hour_Wise_Data(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
-tm=time.strftime("%Y-%m-%d %H-%M-%S")
-cur.executemany("select * from Hour_Wise_Data where DATE=%s and HOUR=%s order by DATE desc",[(str(tm[:10]),str(tm[11:13]))])
-result=cur.fetchall()
 rest=[]
 app=Flask(__name__)
 
@@ -22,25 +15,19 @@ def index():
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
-        cur.executemany(sql,[(tm[:10],tm[11:13],data['ip'],data['browser'],data['os'])])
-        con.commit()
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
-        cur.executemany("select * from Hour_Wise_Data where DATE=%s and HOUR=%s order by DATE and HOUR desc",[(str(tm[:10]),str(tm[11:13]))])
-        result=cur.fetchall()
-
-        if len(rest)==0 and len(result)==0:
+      
+        if len(rest)==0:
             print("len(a)==0:",rest)
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             print(mn)
             rest.append(mn)
-            cur.executemany(sqls,[(str(tm[:10]),str(tm[11:13]),str(v),str(u),str({data['browser']:1}),str({data['os']:1}),str([data['ip']]))])
-            con.commit()
         
             
 
         else:
-
+            print(rest)
             rest[0][2]+=1
             if a[2] not in rest[0][-1]:
                 rest[0][3]+=1
@@ -53,24 +40,16 @@ def index():
                 rest[0][-2][a[-1]] += 1
             else:
                 rest[0][-2][a[-1]] = 1
-            cur.executemany("update Hour_Wise_Data set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE={} and HOUR={} order by DATE desc".format(tm[:10],tm[11:13]),[(str(rest[0][2]),str(rest[0][3]),str(rest[0][4]),str(rest[0][-2]),str(rest[0][-1]))])
-            con.commit()
                 
 
-    return 'Hello World'
+    return 'Hello!'
 
 @app.route('/result')
 def res():
-    return rest
+    return str(rest)
 
 if __name__=="__main__":
     app.run()
-
-
-
-
-
-
 
 
 
