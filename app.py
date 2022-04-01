@@ -42,7 +42,7 @@ def index():
                 rest[0][-2][a[-1]] = 1
                 
 
-    return 'Hello!'
+    return str(rest)
 
 @app.route('/result')
 def res():
