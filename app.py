@@ -4,7 +4,7 @@ import pymysql as p
 from datetime import datetime
 import time
 
-
+restd=[]
 rest=[]
 app=Flask(__name__)
 
@@ -15,6 +15,7 @@ def index():
     cur=con.cursor()
     sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
+    sqlss="insert into DayWise(DATE,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s)"
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
@@ -44,17 +45,65 @@ def index():
                 rest[-1][-2][a[-1]] = 1
             cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
+            
+        if len(restd)==0 or str(restd[-1][0])!=tm[:10]:
+            v,u=1,1
+            mn=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            restd.append(mn)
+            cur.executemany(sqlss,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
+            con.commit()
+
+        else:
+            restd[-1][2]+=1
+            if a[2] not in restd[-1][-1]:
+                restd[-1][3]+=1
+                
+                restd[-1][-1].append(a[2])
+            if a[3] in restd[-1][4]:
+                restd[-1][4][a[3]] += 1
+            else:
+                restd[-1][4][a[3]] = 1
+            if a[-1] in restd[-1][-2]:
+                restd[-1][-2][a[-1]] += 1
+            else:
+                restd[-1][-2][a[-1]] = 1
+            cur.executemany("update DayWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s order by DATE desc limit 1",[(str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]),tm[:10])])
+            con.commit()
+            
     else:
         data={'ip': request.environ['HTTP_X_FORWARDED_FOR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
+        if len(restd)==0 or str(restd[-1][0])!=tm[:10]:
+            v,u=1,1
+            mn=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            rest.append(mn)
+            cur.executemany(sqls,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
+            con.commit()
+
+        else:
+            restd[-1][2]+=1
+            if a[2] not in restd[-1][-1]:
+                restd[-1][3]+=1
+                
+                restd[-1][-1].append(a[2])
+            if a[3] in restd[-1][4]:
+                restd[-1][4][a[3]] += 1
+            else:
+                restd[-1][4][a[3]] = 1
+            if a[-1] in restd[-1][-2]:
+                restd[-1][-2][a[-1]] += 1
+            else:
+                restd[-1][-2][a[-1]] = 1
+            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(rest[-1][-1]),tm[:10])])
+            con.commit()
         if len(rest)==0 or str(rest[-1][1])!=tm[11:13]:
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
-            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+            cur.executemany(sqlss,[(rest[-1][0],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
 
         else:
@@ -71,14 +120,17 @@ def index():
                 rest[-1][-2][a[-1]] += 1
             else:
                 rest[-1][-2][a[-1]] = 1
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
-            con.commit()   
+            cur.executemany("update DayWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s order by DATE desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10])])
+            con.commit()  
 
     return render_template('index.html')
 
-@app.route('/result', methods=['GET'])
+@app.route('/hr/result', methods=['GET'])
 def res():
     return str(rest)
+@app.route('/day/result', methods=['GET'])
+def resd():
+    return str(restd)
 '''@app.route('/db',methods=['GET'])
 def dbs():
     con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
