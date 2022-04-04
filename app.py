@@ -11,6 +11,126 @@ app=Flask(__name__)
 @app.route('/', methods=['GET'])
 def index():
 
+    con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
+    cur=con.cursor()
+    sql="insert into Raw_Data(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
+    sqls="insert into Hour_Wise_Data(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
+        tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
+        a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
+        cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
+        con.commit()
+        cur.execute("select * from Hour_Wise_Data where DATE={} and HOUR={} order by DATE and HOUR desc limit 1".format(a[0],a[1]))
+        sets=cur.fetchall()
+        if len(rest)==0 and len(sets)==0:
+            print("len(a)==0:",rest)
+            v,u=1,1
+            mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            print(mn)
+            rest.append(mn)
+            cur.executemany(sqls,[(rest[0][0],rest[0][1],str(rest[0][2]),str(rest[0][3]),str(rest[0][-3]),str(rest[0][-2]),str(rest[0][-1]))])
+            con.commit()
+        
+            
+
+        else:
+            print(rest)
+            rest[0][2]+=1
+            if a[2] not in rest[0][-1]:
+                rest[0][3]+=1
+                rest[0][-1].append(a[2])
+            if a[3] in rest[0][4]:
+                rest[0][4][a[3]] += 1
+            else:
+                rest[0][4][a[3]] = 1
+            if a[-1] in rest[0][-2]:
+                rest[0][-2][a[-1]] += 1
+            else:
+                rest[0][-2][a[-1]] = 1
+            print("date:",tm[:10])
+            cur.executemany("update Hour_Wise_Data set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[0][2]),str(rest[0][3]),str(rest[0][-3]),str(rest[0][-2]),str(rest[0][-1]),tm[:10],tm[11:13])])
+            con.commit()   
+
+    return render_template('index.html')
+
+@app.route('/result', methods=['GET'])
+def res():
+    con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
+    cur=con.cursor()
+    cur.execute("select * from Hour_Wise_Data")
+    l=[]
+    for i in cur:
+        l.append(i)
+    return str(l)
+
+if __name__=="__main__":
+    app.run()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''import json
+from flask import Flask,jsonify,render_template,request
+import pymysql as p
+from datetime import datetime
+import time
+
+str(rest),
+rest=[]
+app=Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def index():
+
 
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
@@ -49,8 +169,7 @@ def res():
     return str(rest)
 
 if __name__=="__main__":
-    app.run()
-
+    app.run()'''
 
 
 
