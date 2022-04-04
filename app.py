@@ -21,23 +21,14 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
-        cur.execute("select * from Hour_Wise_Data where DATE={} and HOUR={}".format(a[0],a[1]))
-        sets=cur.fetchall()
-        print(sets)
         if len(rest)==0 or rest[0][1]!=tm[11:13]:
-            print("len(a)==0:",rest)
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
-            print(mn)
             rest.append(mn)
-        #if len(sets)==0:
             cur.executemany(sqls,[(rest[0][0],rest[0][1],str(rest[0][2]),str(rest[0][3]),str(rest[0][-3]),str(rest[0][-2]),str(rest[0][-1]))])
             con.commit()
-        
-            
 
         else:
-            print(rest)
             rest[0][2]+=1
             if a[2] not in rest[0][-1]:
                 rest[0][3]+=1
@@ -50,7 +41,6 @@ def index():
                 rest[0][-2][a[-1]] += 1
             else:
                 rest[0][-2][a[-1]] = 1
-            print("date:",tm[:10])
             cur.executemany("update Hour_Wise_Data set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[0][2]),str(rest[0][3]),str(rest[0][-3]),str(rest[0][-2]),str(rest[0][-1]),tm[:10],tm[11:13])])
             con.commit()   
 
@@ -58,13 +48,13 @@ def index():
 
 @app.route('/result', methods=['GET'])
 def res():
-    con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
+    '''con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
     cur=con.cursor()
     cur.execute("select * from Hour_Wise_Data")
     l=[]
     for i in cur:
-        l.append(i)
-    return str(l)
+        l.append(i)'''
+    return str(rest)
 
 if __name__=="__main__":
     app.run()
