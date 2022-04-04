@@ -21,26 +21,56 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
-        if len(rest)==0 or str(rest[0][1])!=tm[11:13]:
+        if len(rest)==0 or str(rest[-1][1])!=tm[11:13]:
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
-            cur.executemany(sqls,[(rest[0][0],rest[0][1],str(rest[0][2]),str(rest[0][3]),str(rest[0][-3]),str(rest[0][-2]),str(rest[0][-1]))])
+            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
 
         else:
-            rest[0][2]+=1
-            if a[2] not in rest[0][-1]:
-                rest[0][3]+=1
-                rest[0][-1].append(a[2])
-            if a[3] in rest[0][4]:
-                rest[0][4][a[3]] += 1
+            rest[-1][2]+=1
+            if a[2] not in rest[-1][-1]:
+                rest[-1][3]+=1
+                
+                rest[-1][-1].append(a[2])
+            if a[3] in rest[-1][4]:
+                rest[-1][4][a[3]] += 1
             else:
-                rest[0][4][a[3]] = 1
-            if a[-1] in rest[0][-2]:
-                rest[0][-2][a[-1]] += 1
+                rest[-1][4][a[3]] = 1
+            if a[-1] in rest[-1][-2]:
+                rest[-1][-2][a[-1]] += 1
             else:
-                rest[0][-2][a[-1]] = 1
+                rest[-1][-2][a[-1]] = 1
+            cur.executemany("update Hour_Wise_Data set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
+            con.commit()
+    else:
+        data={'ip': request.environ['HTTP_X_FORWARDED_FOR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
+        tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
+        a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
+        cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
+        con.commit()
+        if len(rest)==0 or str(rest[-1][1])!=tm[11:13]:
+            v,u=1,1
+            mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            rest.append(mn)
+            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+            con.commit()
+
+        else:
+            rest[-1][2]+=1
+            if a[2] not in rest[-1][-1]:
+                rest[-1][3]+=1
+                
+                rest[-1][-1].append(a[2])
+            if a[3] in rest[-1][4]:
+                rest[-1][4][a[3]] += 1
+            else:
+                rest[-1][4][a[3]] = 1
+            if a[-1] in rest[-1][-2]:
+                rest[-1][-2][a[-1]] += 1
+            else:
+                rest[-1][-2][a[-1]] = 1
             cur.executemany("update Hour_Wise_Data set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()   
 
@@ -48,16 +78,10 @@ def index():
 
 @app.route('/result', methods=['GET'])
 def res():
-    '''con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
-    cur=con.cursor()
-    cur.execute("select * from Hour_Wise_Data")
-    l=[]
-    for i in cur:
-        l.append(i)'''
     return str(rest)
 
 if __name__=="__main__":
-    app.run(host='0.0.0.0',port=8080)
+    app.run()
 
 
 
