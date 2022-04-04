@@ -16,6 +16,7 @@ def index():
     cur=con.cursor()
     sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
+    sqlss="insert into DayWise(DATE,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s)"
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
