@@ -21,14 +21,16 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
-        cur.execute("select * from Hour_Wise_Data where DATE={} and HOUR={} order by DATE and HOUR desc limit 1".format(a[0],a[1]))
+        cur.execute("select * from Hour_Wise_Data where DATE={} and HOUR={}".format(a[0],a[1]))
         sets=cur.fetchall()
-        if len(rest)==0 or len(sets)==0:
+        print(sets)
+        if len(rest)==0 or rest[0][1]!=tm[11:13]:
             print("len(a)==0:",rest)
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             print(mn)
             rest.append(mn)
+        #if len(sets)==0:
             cur.executemany(sqls,[(rest[0][0],rest[0][1],str(rest[0][2]),str(rest[0][3]),str(rest[0][-3]),str(rest[0][-2]),str(rest[0][-1]))])
             con.commit()
         
