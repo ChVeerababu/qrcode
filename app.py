@@ -6,7 +6,7 @@ import time
 
 
 rest=[]
-restd=[]
+
 app=Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -16,7 +16,7 @@ def index():
     cur=con.cursor()
     sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
-    sqlss="insert into DayWise(DATE,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s)"
+
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
@@ -47,30 +47,6 @@ def index():
             cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
 
-            
-        if len(restd)==0 or str(restd[-1][0])!=tm[:10]:
-            v,u=1,1
-            mns=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
-            restd.append(mns)
-            cur.executemany(sqlss,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
-            con.commit()
-
-        else:
-            restd[-1][1]+=1
-            if a[2] not in restd[-1][-1]:
-                restd[-1][2]+=1
-                
-                restd[-1][-1].append(a[2])
-            if a[3] in restd[-1][3]:
-                restd[-1][3][a[3]] += 1
-            else:
-                restd[-1][3][a[3]] = 1
-            if a[-1] in restd[-1][-2]:
-                restd[-1][-2][a[-1]] += 1
-            else:
-                restd[-1][-2][a[-1]] = 1
-            cur.executemany("update DayWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s order by DATE desc limit 1",[(str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]),tm[:10])])
-            con.commit()
 
             
     else:
@@ -104,39 +80,13 @@ def index():
             con.commit()
 
 
-        if len(restd)==0 or str(restd[-1][0])!=tm[:10]:
-            v,u=1,1
-            mne=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
-            restd.append(mne)
-            cur.executemany(sqlss,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
-            con.commit()
-
-        else:
-            restd[-1][1]+=1
-            if a[2] not in restd[-1][-1]:
-                restd[-1][2]+=1
-                
-                restd[-1][-1].append(a[2])
-            if a[3] in restd[-1][3]:
-                restd[-1][3][a[3]] += 1
-            else:
-                restd[-1][3][a[3]] = 1
-            if a[-1] in restd[-1][-2]:
-                restd[-1][-2][a[-1]] += 1
-            else:
-                restd[-1][-2][a[-1]] = 1
-            cur.executemany("update DayWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(rest[-1][-1]),tm[:10])])
-            con.commit()
-            
 
     return render_template('index.html')
 
 @app.route('/hr/result', methods=['GET'])
 def res():
-    return str(rest)
-@app.route('/day/result', methods=['GET'])
-def resd():
-    return str(restd)
+    return json.dumps({"Date":rest[0][0],"Hour":rest[0][1],"Visits":rest[0][2],"Unique":rest[0][3],"Browser":rest[0][4],"Os":rest[0][5],"IP":rest[0][6]},indent=4)
+
 
 if __name__=="__main__":
     app.run()
