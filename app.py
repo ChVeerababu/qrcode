@@ -23,7 +23,7 @@ def index():
         con.commit()
         cur.execute("select * from Hour_Wise_Data where DATE={} and HOUR={} order by DATE and HOUR desc limit 1".format(a[0],a[1]))
         sets=cur.fetchall()
-        if len(rest)==0 and len(sets)==0:
+        if len(rest)==0 or len(sets)==0:
             print("len(a)==0:",rest)
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
