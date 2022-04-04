@@ -22,6 +22,7 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
+        '''hourwiser'''
         if len(rest)==0 or str(rest[-1][1])!=tm[11:13]:
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
@@ -45,24 +46,25 @@ def index():
                 rest[-1][-2][a[-1]] = 1
             cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
-            
+
+        '''daywise'''
         if len(restd)==0 or str(restd[-1][0])!=tm[:10]:
             v,u=1,1
-            mn=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
-            restd.append(mn)
+            mns=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            restd.append(mns)
             cur.executemany(sqlss,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
             con.commit()
 
         else:
-            restd[-1][2]+=1
+            restd[-1][1]+=1
             if a[2] not in restd[-1][-1]:
-                restd[-1][3]+=1
+                restd[-1][2]+=1
                 
                 restd[-1][-1].append(a[2])
-            if a[3] in restd[-1][4]:
-                restd[-1][4][a[3]] += 1
+            if a[3] in restd[-1][3]:
+                restd[-1][3][a[3]] += 1
             else:
-                restd[-1][4][a[3]] = 1
+                restd[-1][3][a[3]] = 1
             if a[-1] in restd[-1][-2]:
                 restd[-1][-2][a[-1]] += 1
             else:
@@ -76,33 +78,37 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
+
+        '''daywise'''
         if len(restd)==0 or str(restd[-1][0])!=tm[:10]:
             v,u=1,1
-            mn=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
-            rest.append(mn)
-            cur.executemany(sqls,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
+            mne=[tm[:10],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            restd.append(mne)
+            cur.executemany(sqlss,[(restd[-1][0],str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(restd[-1][-1]))])
             con.commit()
 
         else:
-            restd[-1][2]+=1
+            restd[-1][1]+=1
             if a[2] not in restd[-1][-1]:
-                restd[-1][3]+=1
+                restd[-1][2]+=1
                 
                 restd[-1][-1].append(a[2])
-            if a[3] in restd[-1][4]:
-                restd[-1][4][a[3]] += 1
+            if a[3] in restd[-1][3]:
+                restd[-1][3][a[3]] += 1
             else:
-                restd[-1][4][a[3]] = 1
+                restd[-1][3][a[3]] = 1
             if a[-1] in restd[-1][-2]:
                 restd[-1][-2][a[-1]] += 1
             else:
                 restd[-1][-2][a[-1]] = 1
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(rest[-1][-1]),tm[:10])])
+            cur.executemany("update DayWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(restd[-1][1]),str(restd[-1][2]),str(restd[-1][3]),str(restd[-1][-2]),str(rest[-1][-1]),tm[:10])])
             con.commit()
+
+        '''hrwise'''
         if len(rest)==0 or str(rest[-1][1])!=tm[11:13]:
             v,u=1,1
-            mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
-            rest.append(mn)
+            mnl=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
+            rest.append(mnl)
             cur.executemany(sqlss,[(rest[-1][0],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
 
@@ -120,7 +126,7 @@ def index():
                 rest[-1][-2][a[-1]] += 1
             else:
                 rest[-1][-2][a[-1]] = 1
-            cur.executemany("update DayWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s order by DATE desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10])])
+            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s order by DATE desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10])])
             con.commit()  
 
     return render_template('index.html')
