@@ -50,8 +50,7 @@ def index():
 
             
     else:
-        data={'ip': request.environ['HTTP_X_FORWARDED_FOR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
-        tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
+        data={'ip': request.environ['HTTP_X_FORWARDED_FOR'],'timestamp':tm,'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
