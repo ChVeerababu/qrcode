@@ -1,7 +1,6 @@
 import json
 from flask import Flask,jsonify,render_template,request
 import pymysql as p
-from datetime import datetime
 import time
 
 
@@ -11,15 +10,15 @@ app=Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def index():
-
+    tm=time.strftime("%Y-%m-%d %H-%M-%S")
     con=p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database="QRCODE_DATA")
     cur=con.cursor()
     sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
-
+    cur.executemany("select * from HourWise where Date=%s and Hour=%s order by Date and Hour desc",[(tm[:10],tm[10:13])])
+    check=cur.fetchall()
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-        data={'ip': request.environ['REMOTE_ADDR'],'timestamp':datetime.now(),'browser':request.user_agent._browser, 'os':request.user_agent._platform }
-        tm=data['timestamp'].strftime("%Y-%m-%d %H-%M-%S")
+        data={'ip': request.environ['REMOTE_ADDR'],'timestamp':tm,'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
         cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
         con.commit()
@@ -27,8 +26,9 @@ def index():
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
-            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
-            con.commit()
+            if len(check)==0:
+                cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+                con.commit()
 
         else:
             rest[-1][2]+=1
@@ -59,8 +59,9 @@ def index():
             v,u=1,1
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
-            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
-            con.commit()
+            if len(check)==0:
+                cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+                con.commit()
 
         else:
             rest[-1][2]+=1
@@ -85,11 +86,15 @@ def index():
 
 @app.route('/hr/result', methods=['GET'])
 def res():
-    return json.dumps({"Date":rest[0][0],"Hour":rest[0][1],"Visits":rest[0][2],"Unique":rest[0][3],"Browser":rest[0][4],"Os":rest[0][5],"IP":rest[0][6]},indent=4)
+    return str(rest)
+    '''d={}
+    for j in range(0,len(rest)):
+        d.update({"HourWise Result":list({"Date":[rest[j][0]],"Hour":[rest[j][1]],"Visits":[rest[j][2]],"Unique":[rest[j][3]],"Browser":[rest[j][4]],"Os":[rest[j][5]],"IP":[rest[j][6]]})})
+    return json.dumps(d,indent=4)'''
 
 
 if __name__=="__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=8080)
 
 
 
