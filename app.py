@@ -15,8 +15,10 @@ def index():
     cur=con.cursor()
     sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
-    cur.executemany("select * from HourWise where Date=%s and Hour=%s order by Date and Hour desc",[(tm[:10],tm[10:13])])
+    cur.executemany("select * from HourWise where Date=%s and Hour=%s order by Date and Hour desc",[(tm[:10],tm[11:13])])
     check=cur.fetchall()
+    print(check)
+    print("len",len(check))
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':tm,'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
@@ -27,6 +29,7 @@ def index():
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
             if len(check)==0:
+                print("len of hour",len(check))
                 cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
                 con.commit()
 
@@ -44,8 +47,13 @@ def index():
                 rest[-1][-2][a[-1]] += 1
             else:
                 rest[-1][-2][a[-1]] = 1
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
-            con.commit()
+            print("len of hour at if-else",len(check))
+            if len(check)==0:
+                cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+                con.commit()
+            else:
+                cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),str(rest[-1][0]),(rest[-1][1]))])
+                con.commit()
 
 
             
@@ -59,6 +67,7 @@ def index():
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
             if len(check)==0:
+                print("len of hour else",len(check))
                 cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
                 con.commit()
 
@@ -76,8 +85,13 @@ def index():
                 rest[-1][-2][a[-1]] += 1
             else:
                 rest[-1][-2][a[-1]] = 1
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
-            con.commit()
+            print("len of hour at else if-else",len(check))
+            if len(check)==0:
+                cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+                con.commit()
+            else:
+                cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),str(rest[-1][0]),str(rest[-1][1]))])
+                con.commit()
 
 
 
