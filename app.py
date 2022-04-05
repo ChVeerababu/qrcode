@@ -2,6 +2,7 @@ import json
 from flask import Flask,jsonify,render_template,request
 import pymysql as p
 import time
+import pandas as pd
 
 
 rest=[]
@@ -96,18 +97,32 @@ def index():
 
 
     return render_template('index.html')
+def db(database_name='QRCODE_DATA'):
+    return p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database=database_name)
 
+def query_db(query, args=(), one=False):
+    cur = db().cursor()
+    cur.execute(query, args)
+    r = [dict((cur.description[i][0], value) \
+               for i, value in enumerate(row)) for row in cur.fetchall()]
+    cur.connection.close()
+    return (r[0] if r else None) if one else r
 @app.route('/hr/result', methods=['GET'])
 def res():
-    return str(rest)
-    '''d={}
-    for j in range(0,len(rest)):
-        d.update({"HourWise Result":list({"Date":[rest[j][0]],"Hour":[rest[j][1]],"Visits":[rest[j][2]],"Unique":[rest[j][3]],"Browser":[rest[j][4]],"Os":[rest[j][5]],"IP":[rest[j][6]]})})
-    return json.dumps(d,indent=4)'''
+    
+    my_query = query_db("select * from HourWise")
+
+    json_output = json.dumps(my_query,indent=4)
+
+    #df=pd.DataFrame(my_query)
+    
+    return json_output
 
 
 if __name__=="__main__":
     app.run()
+
+
 
 
 
