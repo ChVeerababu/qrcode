@@ -18,8 +18,6 @@ def index():
     sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
     cur.executemany("select * from HourWise where Date=%s and Hour=%s order by Date and Hour desc",[(tm[:10],tm[11:13])])
     check=cur.fetchall()
-    print(check)
-    print("len",len(check))
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         data={'ip': request.environ['REMOTE_ADDR'],'timestamp':tm,'browser':request.user_agent._browser, 'os':request.user_agent._platform }
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']]
@@ -30,7 +28,6 @@ def index():
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
             if len(check)==0:
-                print("len of hour",len(check))
                 cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
                 con.commit()
 
@@ -48,7 +45,6 @@ def index():
                 rest[-1][-2][a[-1]] += 1
             else:
                 rest[-1][-2][a[-1]] = 1
-            print("len of hour at if-else",len(check))
             if len(check)==0:
                 cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
                 con.commit()
@@ -68,7 +64,6 @@ def index():
             mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
             rest.append(mn)
             if len(check)==0:
-                print("len of hour else",len(check))
                 cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
                 con.commit()
 
@@ -86,7 +81,6 @@ def index():
                 rest[-1][-2][a[-1]] += 1
             else:
                 rest[-1][-2][a[-1]] = 1
-            print("len of hour at else if-else",len(check))
             if len(check)==0:
                 cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
                 con.commit()
@@ -94,9 +88,11 @@ def index():
                 cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),str(rest[-1][0]),str(rest[-1][1]))])
                 con.commit()
 
-
-
     return render_template('index.html')
+
+
+
+
 def db(database_name='QRCODE_DATA'):
     return p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database=database_name)
 
@@ -107,16 +103,35 @@ def query_db(query, args=(), one=False):
                for i, value in enumerate(row)) for row in cur.fetchall()]
     cur.connection.close()
     return (r[0] if r else None) if one else r
+
+
+
+
+
 @app.route('/hr/result', methods=['GET'])
 def res():
     
     my_query = query_db("select * from HourWise")
 
-    json_output = json.dumps(my_query,indent=4)
-
-    #df=pd.DataFrame(my_query)
+    json_output = json.dumps(my_query)
     
-    return json_output
+    jsn=eval(json_output)
+
+    d={}
+    date=[]
+    l=[]
+    for i in jsn:
+        if i['DATE'] in date:
+            l.append(i)
+            d[i['DATE']]=l
+            del i['DATE']
+        else:
+            date.append(i['DATE'])
+            d[i['DATE']]=[i]
+            del i['DATE']
+            l=[i]
+    dfc=json.dumps(d,indent=4)
+    return dfc
 
 
 if __name__=="__main__":
