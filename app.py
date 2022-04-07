@@ -88,7 +88,7 @@ def index():
                 cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),str(rest[-1][0]),str(rest[-1][1]))])
                 con.commit()
 
-    return render_template('index.html')
+    return render_template('index2.html')
 
 
 
@@ -125,10 +125,12 @@ def res():
             l.append(i)
             d[i['DATE']]=l
             del i['DATE']
+            del i['IP']
         else:
             date.append(i['DATE'])
             d[i['DATE']]=[i]
             del i['DATE']
+            del i['IP']
             l=[i]
     dfc=json.dumps(d,indent=4)
     return dfc
