@@ -52,6 +52,8 @@ def dbstdata(a,data):
     
 
     else:
+        print(check[-1])
+        rest[-1][2]=int(check[-1][2])
         rest[-1][2]+=1
         if a[2] not in rest[-1][-1]:
             rest[-1][3]+=1
