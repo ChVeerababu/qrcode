@@ -81,12 +81,16 @@ def dbstdata(a,data):
     
 
     else:
-        print(check[-1])
-        rest[-1][2]=int(check[-1][2])
+        print(check)
+        rest[-1][-1]=eval(check[-1][-1])
+        rest[-1][-2]=eval(check[-1][-2])
+        rest[-1][2]=eval(check[-1][2])
+        rest[-1][3]=eval(check[-1][3])
+        rest[-1][4]=eval(check[-1][4])
         rest[-1][2]+=1
+        
         if a[2] not in rest[-1][-1]:
             rest[-1][3]+=1
-                
             rest[-1][-1].append(a[2])
         if a[3] in rest[-1][4]:
             rest[-1][4][a[3]] += 1
