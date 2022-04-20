@@ -36,13 +36,20 @@ def dbstdata(a,data):
 
     cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
     con.commit()
-    if len(rest)==0 or str(rest[-1][1])!=tm[11:13]:
+
+    if len(check)==0:
+        rest.clear()
+    if len(rest)==0:
         v,u=1,1
         mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
         rest.append(mn)
         if len(check)==0:
             cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
+        if len(check)==1:
+            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
+            con.commit()
+    
 
     else:
         rest[-1][2]+=1
@@ -61,9 +68,10 @@ def dbstdata(a,data):
         if len(check)==0:
             cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
-        else:
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),str(rest[-1][0]),(rest[-1][1]))])
+        if len(check)==1:
+            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
+
 
 def db(database_name='QRCODE_DATA'):
     return p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database=database_name)
@@ -109,7 +117,7 @@ def res():
 
 
 if __name__=="__main__":
-    app.run()
+    app.run(host='0.0.0.0',port=5000)
 
 
 
