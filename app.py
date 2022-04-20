@@ -103,14 +103,8 @@ def dbstdata(a,data):
             cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
 
-<<<<<<< HEAD
-
-def db(database_name='QRCODE_DATA'):
-    return p.connect(host="database-1.czejdnwyu0eq.ap-south-1.rds.amazonaws.com",user="root",password="Ivisivis5",database=database_name)
-=======
 def db(database_name=database):
-    return p.connect(host=host,user=user,password=passord,database=database)
->>>>>>> 5646c3c48781be6a624cc076bbad5983c03a34d3
+    return p.connect(host=host,user=user,password=password,database=database)
 
 def query_db(query, args=(), one=False):
     cur = db().cursor()
