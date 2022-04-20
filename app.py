@@ -24,9 +24,10 @@ app=Flask(__name__)
 
 
 
-qr = os.environ.get('QRCODE_ID')
+account = os.environ.get('QRCODE_ACCOUNT')
 site = os.environ.get('QRCODE_SITE')
-typ = 1
+
+ad = 1
 
 
 
@@ -44,7 +45,7 @@ def index():
 
     
     try:
-        res = get_image(qr,site,typ)
+        res = get_image(site,account,ad)
     except:
         res = None
 

@@ -13,19 +13,13 @@ database = os.environ.get('RDS_DB')
 con=p.connect(host=host,user=user,password=password,database=database)
 cur=con.cursor()
 
-def get_image(qr,site,typ):
+def get_image(site,account,ad):
 
-    query1="select image from qrcode where qr = {} and site = {} and typ = {};".format(qr,site,typ)
+    query1="select image from qrcode where site = {} and account = {} and ad = {};".format(site,account,ad)
 
     cur.execute(query1)
 
     img = cur.fetchone()[0]
 
-    query2='select name from qrcode_image where id = {}'.format(img)
-
-    cur.execute(query2)
-
-    res = cur.fetchone()[0]
-
-    return res
+    return img
 
