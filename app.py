@@ -25,8 +25,7 @@ app=Flask(__name__)
 
 
 account = os.environ.get('QRCODE_ACCOUNT')
-site = os.environ.get('QRCODE_SITE')
-
+site =os.environ.get('QRCODE_SITE')
 ad = 1
 
 
@@ -59,7 +58,7 @@ def dbstdata(a,data):
     con=p.connect(host=host,user=user,password=password,database=database)
     cur=con.cursor()
     sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
-    sqls="insert into HourWise(DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s)"
+    sqls="insert into HourWise(SITE,DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s,%s)"
     cur.executemany("select * from HourWise where Date=%s and Hour=%s order by Date and Hour",[(tm[:10],tm[11:13])])
     check=cur.fetchall()
 
@@ -73,17 +72,17 @@ def dbstdata(a,data):
         mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
         rest.append(mn)
         if len(check)==0:
-            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+            cur.executemany(sqls,[(site,rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
         if len(check)==1:
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
+            cur.executemany("update HourWise set SITE=%s, VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s,SITE=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
     
 
     else:
-        print(check)
-        rest[-1][-1]=eval(check[-1][-1])
-        rest[-1][-2]=eval(check[-1][-2])
+        
+        rest[-1][-1]=eval(check[-1][-2])
+        rest[-1][-2]=eval(check[-1][-3])
         rest[-1][2]=eval(check[-1][2])
         rest[-1][3]=eval(check[-1][3])
         rest[-1][4]=eval(check[-1][4])
@@ -101,10 +100,10 @@ def dbstdata(a,data):
         else:
             rest[-1][-2][a[-1]] = 1
         if len(check)==0:
-            cur.executemany(sqls,[(rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
+            cur.executemany(sqls,[(site,rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
         if len(check)==1:
-            cur.executemany("update HourWise set VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
+            cur.executemany("update HourWise set SITE=%s,VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
             con.commit()
 
 def db(database_name=database):
