@@ -53,17 +53,16 @@ def index():
 
 
 def dbstdata(a,data):
-    time.sleep(0.1)
     tm=time.strftime("%Y-%m-%d %H-%M-%S")
     con=p.connect(host=host,user=user,password=password,database=database)
     cur=con.cursor()
-    sql="insert into RawData(Date,Hour,Ip,Browser,Os)values(%s,%s,%s,%s,%s)"
+    sql="insert into RawData(Date,Hour,Ip,Browser,Os,SITE)values(%s,%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(SITE,DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s,%s)"
-    cur.executemany("select * from HourWise where Date=%s and Hour=%s order by Date and Hour",[(tm[:10],tm[11:13])])
+    cur.executemany("select * from HourWise where Date=%s and Hour=%s and SITE=%s order by Date and Hour",[(tm[:10],tm[11:13],site)])
     check=cur.fetchall()
 
-    cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1])])
-    con.commit()
+    cur.executemany(sql,[(a[0],a[1],a[2],a[-2],a[-1],site)])
+    con.commit() 
 
     if len(check)==0:
         rest.clear()
@@ -75,7 +74,8 @@ def dbstdata(a,data):
             cur.executemany(sqls,[(site,rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
         if len(check)==1:
-            cur.executemany("update HourWise set SITE=%s, VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s,SITE=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
+            cur.executemany("update HourWise set SITE=%s, VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s and SITE=%s order by DATE and HOUR desc limit 1",\
+            [(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13],site)])
             con.commit()
     
 
@@ -103,7 +103,8 @@ def dbstdata(a,data):
             cur.executemany(sqls,[(site,rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
         if len(check)==1:
-            cur.executemany("update HourWise set SITE=%s,VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s order by DATE and HOUR desc limit 1",[(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13])])
+            cur.executemany("update HourWise set SITE=%s,VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s and SITE=%s order by DATE and HOUR desc limit 1",\
+            [(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13],site)])
             con.commit()
 
 def db(database_name=database):
