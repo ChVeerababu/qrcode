@@ -41,10 +41,10 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']] 
 
     threading.Thread(target=dbstdata(a,data)).start()
-
+    
     
     try:
-        res = get_image(site,account,ad)
+        res = get_image(site,account,ad,rule())
     except:
         res = None
 
@@ -104,11 +104,10 @@ def dbstdata(a,data):
             con.commit()
         if len(check)==1:
             cur.executemany("update HourWise set SITE=%s,VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s and SITE=%s order by DATE and HOUR desc limit 1",\
-            
             [(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13],site)])
             con.commit()
 
-def db(database_name=database):
+def db():
     return p.connect(host=host,user=user,password=password,database=database)
 
 def query_db(query, args=(), one=False):
@@ -118,8 +117,11 @@ def query_db(query, args=(), one=False):
                for i, value in enumerate(row)) for row in cur.fetchall()]
     cur.connection.close()
     return (r[0] if r else None) if one else r
-
-
+def rule():
+    cur=db().cursor()
+    cur.execute("select rule from qrcode_account where id={}".format(account))
+    rule=cur.fetchone()[0]
+    return rule
 
 
 
