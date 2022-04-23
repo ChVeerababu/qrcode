@@ -113,10 +113,11 @@ def dbstdata(a,data):
             con.commit()
 # connect database here
 def db():
-    return p.connect(host=host,user=user,password=password,database=database)
+    dbcon=p.connect(host=host,user=user,password=password,database=database)
+    return dbcon.cursor()
 # query execution block
 def query_db(query, args=(), one=False):
-    cur = db().cursor()
+    cur = db()
     cur.execute(query, args)
     r = [dict((cur.description[i][0], value) \
                for i, value in enumerate(row)) for row in cur.fetchall()]
@@ -125,7 +126,7 @@ def query_db(query, args=(), one=False):
 
 # rule for ads
 def rule():
-    cur=db().cursor()
+    cur=db()
     cur.execute("select rule from qrcode_account where id={}".format(account))
     rule=cur.fetchone()[0]
     return rule
@@ -135,7 +136,7 @@ def rule():
 @app.route('/hr/result', methods=['GET'])
 def res():
     
-    my_query = query_db("select * from HourWise")
+    my_query = query_db("select * from HourWise where SITE={}".format(site))
 
     json_output = json.dumps(my_query)
     
@@ -161,7 +162,7 @@ def res():
 
 # calling api's
 if __name__=="__main__":
-    app.run(host='0.0.0.0',port=5000)
+    app.run()
 
 
 

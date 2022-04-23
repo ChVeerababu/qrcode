@@ -64,7 +64,7 @@ def get_temp(site,account,ad,rule):
     
 def get_timing(site,account,ad,rule):
 
-    tm=time.strftime('%P')
+    tm=time.strftime('%p')
 
     if tm=='AM':
         ad=2
