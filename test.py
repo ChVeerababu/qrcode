@@ -11,9 +11,9 @@ host = os.environ.get('RDS_URL')
 user = os.environ.get('RDS_USER')
 password = os.environ.get('RDS_PASS')
 database = os.environ.get('RDS_DB')
-#key=os.environ.get('API_KEY')
-#lat=os.environ.get('LATITUDE')
-#long=os.environ.get('LONGTITUDE')
+key=os.environ.get('API_KEY')
+lat=os.environ.get('LATITUDE')
+long=os.environ.get('LONGTITUDE')
 
 
 con=p.connect(host=host,user=user,password=password,database=database)
@@ -29,29 +29,50 @@ def get_image(site,account,ad,rule):
 
     return img
 
+
 def current_temp():
     
     api="https://api.openweathermap.org/data/2.5/onecall?lat={}&lon={}&exclude=hourly,daily&appid={}".format(lat,long,key)
+
     r=requests.get(api)
+
     data=r.json()
+
     F=float(data['current']['temp'])
+
     c=F-273.15
+
     return c
 
-'''def current_temp():
+
+def get_temp(site,account,ad,rule):
+
     c=current_temp()
+
     if 20<c>28:
-        return render_template('index.html',res = res)
+        ad=4
+        return get_image(site,account,ad,rule)
+
     elif 28<=c>=35:
-        return render_template('index.html',res = res)
+        ad=5
+        return get_image(site,account,ad,rule)
+        
     else:
-        return render_template('index.html',res = res)
-def current_time():
+        ad=6
+        return get_image(site,account,ad,rule)
+
+    
+def get_timing(site,account,ad,rule):
+
     tm=time.strftime('%P')
-    elif tm=='AM':
-        return render_template('index.html',res = res)
+
+    if tm=='AM':
+        ad=2
+        return get_image(site,account,ad,rule)
+
     else:
-        return render_template('index.html',res = res)'''
+        ad=3
+        return get_image(site,account,ad,rule)
 
 
 

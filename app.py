@@ -5,30 +5,28 @@ import pandas as pd
 import threading
 import os
 from flask import Flask, render_template, flash, request, redirect, url_for,send_file
-
-
-from test import get_image
-
+from test import get_image,get_timing,get_temp
 from dotenv import load_dotenv
-
+# load data from .env file
 load_dotenv()
 
 host = os.environ.get('RDS_URL')
 user = os.environ.get('RDS_USER')
 password = os.environ.get('RDS_PASS')
 database = os.environ.get('RDS_DB')
-
+# take one record for each hour using list
 rest=[]
 
 app=Flask(__name__)
 
 
-
+# getting data from .env file
 account = os.environ.get('QRCODE_ACCOUNT')
 site =os.environ.get('QRCODE_SITE')
 ad = 1
 
 
+# main api calling thrugh /
 
 @app.route('/', methods=['GET'])
 def index():
@@ -41,17 +39,24 @@ def index():
         a = [tm[:10],tm[11:13],data['ip'],data['browser'],data['os']] 
 
     threading.Thread(target=dbstdata(a,data)).start()
+    r=rule()
     
-    
-    try:
-        res = get_image(site,account,ad,rule())
-    except:
-        res = None
+    if 1:
+        if r == 1:
+            res = get_image(site,account,ad,r)
+        elif r == 2:
+            res = get_timing(site,account,ad,r)
+        else:
+            res = get_temp(site,account,ad,r) 
+            
+            
+    else:
+        res = "https://wallpaperaccess.com/full/57166.jpg"
 
 
     return render_template('index.html',res = res)
 
-
+# store hourwise data using funcion
 def dbstdata(a,data):
     tm=time.strftime("%Y-%m-%d %H-%M-%S")
     con=p.connect(host=host,user=user,password=password,database=database)
@@ -106,10 +111,10 @@ def dbstdata(a,data):
             cur.executemany("update HourWise set SITE=%s,VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s and SITE=%s order by DATE and HOUR desc limit 1",\
             [(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13],site)])
             con.commit()
-
+# connect database here
 def db():
     return p.connect(host=host,user=user,password=password,database=database)
-
+# query execution block
 def query_db(query, args=(), one=False):
     cur = db().cursor()
     cur.execute(query, args)
@@ -117,6 +122,8 @@ def query_db(query, args=(), one=False):
                for i, value in enumerate(row)) for row in cur.fetchall()]
     cur.connection.close()
     return (r[0] if r else None) if one else r
+
+# rule for ads
 def rule():
     cur=db().cursor()
     cur.execute("select rule from qrcode_account where id={}".format(account))
@@ -124,7 +131,7 @@ def rule():
     return rule
 
 
-
+# sub api calling thrigh endpoints like /hr/result
 @app.route('/hr/result', methods=['GET'])
 def res():
     
@@ -152,7 +159,7 @@ def res():
     dfc=json.dumps(d,indent=4)
     return dfc
 
-
+# calling api's
 if __name__=="__main__":
     app.run(host='0.0.0.0',port=5000)
 
