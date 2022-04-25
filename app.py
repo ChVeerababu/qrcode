@@ -7,9 +7,11 @@ import os
 from flask import Flask, render_template, flash, request, redirect, url_for,send_file
 from test import get_image,get_timing,get_temp
 from dotenv import load_dotenv
+#import query as q
 # load data from .env file
 load_dotenv()
 
+#cur=q.db().cursor()
 host = os.environ.get('RDS_URL')
 user = os.environ.get('RDS_USER')
 password = os.environ.get('RDS_PASS')
@@ -61,6 +63,7 @@ def dbstdata(a,data):
     tm=time.strftime("%Y-%m-%d %H-%M-%S")
     con=p.connect(host=host,user=user,password=password,database=database)
     cur=con.cursor()
+
     sql="insert into RawData(Date,Hour,Ip,Browser,Os,SITE)values(%s,%s,%s,%s,%s,%s)"
     sqls="insert into HourWise(SITE,DATE,HOUR,VISITS,UNIQUES,BROWSER,OS,IP)values(%s,%s,%s,%s,%s,%s,%s,%s)"
     cur.executemany("select * from HourWise where Date=%s and Hour=%s and SITE=%s order by Date and Hour",[(tm[:10],tm[11:13],site)])
@@ -71,6 +74,8 @@ def dbstdata(a,data):
 
     if len(check)==0:
         rest.clear()
+
+
     if len(rest)==0:
         v,u=1,1
         mn=[tm[:10],tm[11:13],v,u,{data['browser']:1},{data['os']:1},[data['ip']]]
@@ -78,7 +83,7 @@ def dbstdata(a,data):
         if len(check)==0:
             cur.executemany(sqls,[(site,rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
-        if len(check)==1:
+        else:
             cur.executemany("update HourWise set SITE=%s, VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s and SITE=%s order by DATE and HOUR desc limit 1",\
             [(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13],site)])
             con.commit()
@@ -107,7 +112,7 @@ def dbstdata(a,data):
         if len(check)==0:
             cur.executemany(sqls,[(site,rest[-1][0],rest[-1][1],str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]))])
             con.commit()
-        if len(check)==1:
+        else:
             cur.executemany("update HourWise set SITE=%s,VISITS=%s,UNIQUES=%s,BROWSER=%s,OS=%s,IP=%s where DATE=%s and HOUR=%s and SITE=%s order by DATE and HOUR desc limit 1",\
             [(site,str(rest[-1][2]),str(rest[-1][3]),str(rest[-1][-3]),str(rest[-1][-2]),str(rest[-1][-1]),tm[:10],tm[11:13],site)])
             con.commit()

@@ -3,7 +3,7 @@ import os
 import requests
 from dotenv import load_dotenv
 import time
-
+#import query as q
 
 load_dotenv()
 
@@ -13,9 +13,9 @@ password = os.environ.get('RDS_PASS')
 database = os.environ.get('RDS_DB')
 key=os.environ.get('API_KEY')
 lat=os.environ.get('LATITUDE')
-long=os.environ.get('LONGTITUDE')
+lng=os.environ.get('LONGTITUDE')
 
-
+#cur=q.db().cursor()
 con=p.connect(host=host,user=user,password=password,database=database)
 cur=con.cursor()
 
@@ -32,7 +32,7 @@ def get_image(site,account,ad,rule):
 
 def current_temp():
     
-    api="https://api.openweathermap.org/data/2.5/onecall?lat={}&lon={}&exclude=hourly,daily&appid={}".format(lat,long,key)
+    api="https://api.openweathermap.org/data/2.5/onecall?lat={}&lon={}&exclude=hourly,daily&appid={}".format(lat,lng,key)
 
     r=requests.get(api)
 
