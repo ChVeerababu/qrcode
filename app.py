@@ -80,6 +80,10 @@ def dbstdata(a,data):
 
     if len(check)==0:
         rest.clear()
+    else:
+        mn=[tm[:10],tm[11:13],eval(check[-1][2]),eval(check[-1][3]),eval(check[-1][4]),eval(check[-1][-3]),eval(check[-1][-2])]
+        rest.append(mn)
+        
 
 
     if len(rest)==0:
